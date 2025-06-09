@@ -1,0 +1,8 @@
+{
+  "name": "Ivan",
+  "location": "San Francisco, CA",
+  "radius_km": 15,
+  "preferred_activities": ["yoga", "meditation", "gym", "nature"],
+  "accessibility_needs": ["wheelchair"],
+  "budget_per_day": 50
+} 

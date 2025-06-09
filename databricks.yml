@@ -1,0 +1,25 @@
+bundle:
+  name: wellness-agent-bundle
+
+resources:
+  jobs:
+    wellness-agent-job:
+      tasks:
+        - task_key: run_agent
+          python_wheel_task:
+            package_name: wellness_agent
+            entry_point: main
+          job_cluster_key: agent-cluster
+      job_clusters:
+        - job_cluster_key: agent-cluster
+          new_cluster:
+            serverless: true
+    
+
+targets:
+  default:
+    workspace:
+      host: https://dbc-2cd64891-f5af.cloud.databricks.com
+  dev:
+    workspace:
+      host: https://dbc-2cd64891-f5af.cloud.databricks.com
