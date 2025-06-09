@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
-
-LOG_PATH = 'agent.log'
+from wellness_agent.defaults import LOG_PATH
 
 def log_event(event_type, details):
     event = {

@@ -1,8 +1,8 @@
 import json
 import os
 from math import radians, cos, sin, asin, sqrt
-
-PAST_ITINERARIES_PATH = 'past_itineraries.json'
+from wellness_agent.defaults import PAST_ITINERARIES_PATH
+from datetime import datetime, timedelta
 
 def load_past_itineraries():
     if os.path.exists(PAST_ITINERARIES_PATH):
@@ -63,4 +63,52 @@ def build_itinerary(user_profile, venues, date):
     return {
         "date": date,
         "activities": activities
+    }
+
+def build_scheduled_itinerary(user_profile, venues, date, start_time, end_time, default_duration=60, speed_kmh=5):
+    """
+    Build a scheduled itinerary within a user-specified time window, accounting for travel and activity duration.
+    Args:
+        user_profile (dict): User profile with lat/lon.
+        venues (list): List of venue dicts (should be pre-filtered/scored).
+        date (str): Date string (YYYY-MM-DD).
+        start_time (str): Start time (HH:MM, 24h).
+        end_time (str): End time (HH:MM, 24h).
+        default_duration (int): Default activity duration in minutes.
+        speed_kmh (float): Travel speed in km/h.
+    Returns:
+        dict: Scheduled itinerary with activities and times.
+    """
+    current_time = datetime.strptime(f'{date} {start_time}', '%Y-%m-%d %H:%M')
+    end_time_dt = datetime.strptime(f'{date} {end_time}', '%Y-%m-%d %H:%M')
+    scheduled_activities = []
+    last_lat = user_profile.get('lat', 37.77)
+    last_lon = user_profile.get('lon', -122.42)
+
+    for v in venues:
+        # Calculate travel time (in minutes)
+        distance = v.get('distance_km', 0)
+        travel_minutes = int((distance / speed_kmh) * 60)
+        duration = v.get('duration_minutes', default_duration)
+
+        # Add travel time
+        current_time += timedelta(minutes=travel_minutes)
+        if current_time + timedelta(minutes=duration) > end_time_dt:
+            break  # No more time for this activity
+
+        scheduled_activities.append({
+            'time': current_time.strftime('%H:%M'),
+            'name': v['name'],
+            'category': v['category'],
+            'distance_km': round(distance, 2),
+            'rating': v.get('rating', None),
+            'duration_minutes': duration
+        })
+        # Advance time by activity duration
+        current_time += timedelta(minutes=duration)
+        last_lat, last_lon = v.get('lat', last_lat), v.get('lon', last_lon)
+
+    return {
+        'date': date,
+        'activities': scheduled_activities
     } 
